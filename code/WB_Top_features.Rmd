@@ -1,4 +1,13 @@
-#Pull top feautres
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
 
 #setwd("code/work/")
 options(stringsAsFactors = FALSE)
@@ -25,51 +34,23 @@ extra_stopwords <- c("shall", "may", "one", "us", "hath", "yet", "upon", "yet", 
                      "non-latin", "alphabet", "saith", "thus", "|", "¦", "⁻", "vol", "year", "printed", "published",
                      "na", "amp", "ye", "anno", "translated", "vpon", "vnto", "yeere", "haue", "three", "second", "thereof", "yeare", "written", "mr",
                      "wherein", "written", "esq", "author", "part", "dr", "volumes", "1800", "volume", "mrs", "m.d", "d.d", "b.d")
+```
 
+```{r}
 #Get top features per era
 
 for(i_era in 1:length(eras)) {
-  cat("\r", eras[i_era])
+  cat("\r", eras[i_era], "\n")
   
   temp_files <- dfm_files[grep(eras[i_era], dfm_files)]
   temp_dfm <- readRDS(temp_files)
   temp_dfm <- dfm_select(temp_dfm, pattern = c(stopwords("english"), stopwords("french"), latin_stopwords$a, extra_stopwords), selection = "remove", valuetype = "fixed")
-  topfeatures(temp_dfm, n = 100)
+  print(topfeatures(temp_dfm, n = 100))
 }
+```
 
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
-#Get keyness per community, export png of each community, and save CSV for each era
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
 
-for(i_era in 1:length(eras)) {
-  cat("\r", eras[i_era])
-  
-  temp_files <- dfm_files[grep(eras[i_era], dfm_files)]
-  temp_dir <- paste0("outputs/keyness/", eras[i_era], "/")
-  
-  dir.create(temp_dir, showWarnings = FALSE)
-  temp_dfm <- readRDS(temp_files)
-  temp_dfm <- dfm_select(temp_dfm, pattern = c(stopwords("english"), stopwords("french"), latin_stopwords$a, extra_stopwords), selection = "remove", valuetype = "fixed")
-  com_num <- unique(temp_dfm@docvars$Community)
-  
-  #One era only has one community (1506-1515), so need to skip it
-  if(length(com_num) == 1) { next }
-  
-  temp_df_key_plus <- data.frame(matrix(data = NA, nrow = 100, ncol = length(com_num)))
-  temp_df_key_minus <- data.frame(matrix(data = NA, nrow = 100, ncol = length(com_num)))
-  
-  for (i_com_keyness in 1:length(com_num)) {
-    tstat_key <- textstat_keyness(temp_dfm, 
-                                  target = temp_dfm@docvars$Community == paste0("Community_", i_com_keyness))
-    temp_plot <- textplot_keyness(tstat_key, n = 20)
-    ggsave(paste0(temp_dir, "community_", i_com_keyness, ".png"), temp_plot)
-    
-    temp_df_key_plus[,i_com_keyness] <- tstat_key$feature[1:100]
-    temp_df_key_minus[,i_com_keyness] <- tstat_key$feature[nrow(tstat_key):(nrow(tstat_key)-99)]
-    
-    write.csv(temp_df_key_plus, file = paste0("outputs/keyness/tstat_", eras[i_era], "_plus.csv"))
-    write.csv(temp_df_key_minus, file = paste0("outputs/keyness/tstat_", eras[i_era], "_minus.csv"))
-  }
-}
-
-
-  
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
