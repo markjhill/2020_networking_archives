@@ -45,17 +45,18 @@ for(i_era in 1:length(eras)) {
   temp_files <- dfm_files[grep(eras[i_era], dfm_files)]
   temp_dfm <- readRDS(temp_files)
   temp_dfm <- dfm_select(temp_dfm, pattern = c(stopwords("english"), stopwords("french"), stopwords("italian"), stopwords("spanish"), latin_stopwords$a, extra_stopwords), selection = "remove", valuetype = "fixed")
-  total_dfm <- dfm_select(total_dfm, pattern = c("\\d\\d\\d\\d\\d", "\\d\\d\\d\\d", "\\d\\d\\d", "\\d\\d", "\\d"), selection = "remove", valuetype = "regex")
-  
-  cat("\n50 top features/tokens\n")
-  print(topfeatures(temp_dfm, n = 20))
+  temp_dfm <- dfm_select(temp_dfm, pattern = c("\\d\\d\\d\\d\\d", "\\d\\d\\d\\d", "\\d\\d\\d", "\\d\\d", "\\d"), selection = "remove", valuetype = "regex")
   
   com_num <- unique(temp_dfm@docvars$Community)
   
   #One era only has one community (1506-1515), so need to skip it
   if(length(com_num) == 1) { next }
   
+  cat("\n25 top features/tokens\n")
+  print(topfeatures(temp_dfm, groups = "Community", n = 25))
+    
   for (i_com_keyness in 1:length(com_num)) {
+    
     cat("\nCommunity:", i_com_keyness, "\n")
     tstat_key <- textstat_keyness(temp_dfm, 
                                   target = temp_dfm@docvars$Community == paste0("Community_", i_com_keyness))

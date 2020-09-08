@@ -36,6 +36,8 @@ eras <- unique(total_dfm@docvars$Era)
 #Print plots
 
 ```{r}
+print(topfeatures(total_dfm, groups = "Era", n = 25))
+
 for(i_era in 1:length(eras)) {
   cat("\n", eras[i_era], "\n")
   tstat_key <- textstat_keyness(total_dfm, 
