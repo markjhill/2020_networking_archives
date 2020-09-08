@@ -30,13 +30,17 @@ for(i_era_dfm in 1:length(eras)) {
   #load and combine corps
   for(i_corp in 1:length(temp_files)) {
     temp_corp <- readRDS(temp_files[i_corp])
+    
+    com_num <- gsub(paste0("../../data/work/netowrking_archives/corpora_titles/corp_", eras[i_era_dfm], "_"), "", temp_files[i_corp])
+    com_num <- gsub(".rds", "", com_num)
+    
     if(i_corp == 1) {
-      docvars(temp_corp, "Community") <- paste0("Community_", i_corp)
-      docnames(temp_corp) <- paste0(i_corp, "_", docnames(temp_corp))
+      docvars(temp_corp, "Community") <- paste0("Community_", com_num)
+      docnames(temp_corp) <- paste0(com_num, "_", docnames(temp_corp))
       temp_com_corp <- temp_corp
     } else {
-      docvars(temp_corp, "Community") <- paste0("Community_", i_corp)
-      docnames(temp_corp) <- paste0(i_corp, "_", docnames(temp_corp))
+      docvars(temp_corp, "Community") <- paste0("Community_", com_num)
+      docnames(temp_corp) <- paste0(com_num, "_", docnames(temp_corp))
       temp_com_corp <- temp_com_corp + temp_corp
     }
     

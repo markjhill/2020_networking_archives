@@ -57,9 +57,9 @@ for(i_era in 1:length(eras)) {
     
   for (i_com_keyness in 1:length(com_num)) {
     
-    cat("\nCommunity:", i_com_keyness, "\n")
+    cat("\n",com_num[i_com_keyness],"\n")
     tstat_key <- textstat_keyness(temp_dfm, 
-                                  target = temp_dfm@docvars$Community == paste0("Community_", i_com_keyness))
+                                  target = temp_dfm@docvars$Community == com_num[i_com_keyness])
     print(textplot_keyness(tstat_key, n = 20))
   }
 }

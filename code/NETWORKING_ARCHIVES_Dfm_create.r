@@ -13,7 +13,9 @@ extra_stopwords <- c("shall", "may", "one", "us", "hath", "yet", "upon", "yet", 
                      "much", "made", "many", "make", "also", "without", "can", "thou", "like", "can", "though", "therefore", "without",
                      "two", "things", "might", "way", "say", "day", "let", "well", "things", "take", "owne", "doth", "i.e", "tis", "page removed",
                      #THIS IS IMPORTANT!
-                     "non-latin", "alphabet", "saith", "thus", "|", "¦", "vol", "year", "printed", "published")
+                     "non-latin", "alphabet", "saith", "thus", "|", "¦", "⁻", "vol", "year", "printed", "published", "publish'd", "publishd",
+                     "na", "amp", "ye", "anno", "translated", "vpon", "vnto", "yeere", "haue", "three", "second", "thereof", "yeare", "written", "mr",
+                     "wherein", "written", "esq", "author", "part", "dr", "volumes", "1800", "volume", "mrs", "m.d", "d.d", "b.d")
 
 
 #corp_files <- list.files("../../data/work/netowrking_archives/corpora", full.names = TRUE)
