@@ -44,7 +44,8 @@ for(i_era in 1:length(eras)) {
   
   temp_files <- dfm_files[grep(eras[i_era], dfm_files)]
   temp_dfm <- readRDS(temp_files)
-  temp_dfm <- dfm_select(temp_dfm, pattern = c(stopwords("english"), stopwords("french"), stopwords("italian"), stopwords("spanish"), stopwords("german"), latin_stopwords$a, extra_stopwords), selection = "remove", valuetype = "fixed")
+  temp_dfm <- dfm_select(temp_dfm, pattern = c(stopwords("english"), stopwords("french"), stopwords("italian"), stopwords("spanish"), latin_stopwords$a, extra_stopwords), selection = "remove", valuetype = "fixed")
+  total_dfm <- dfm_select(total_dfm, pattern = c("\\d\\d\\d\\d\\d", "\\d\\d\\d\\d", "\\d\\d\\d", "\\d\\d", "\\d"), selection = "remove", valuetype = "regex")
   
   cat("\n50 top features/tokens\n")
   print(topfeatures(temp_dfm, n = 20))

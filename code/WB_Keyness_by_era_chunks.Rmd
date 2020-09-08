@@ -1,0 +1,46 @@
+---
+title: "Keyness by era"
+output: github_document
+---
+
+#Prepare data
+
+```{r}
+options(stringsAsFactors = FALSE)
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
+library(quanteda)
+library(stringr)
+library(ggplot2)
+
+#stop words
+latin_stopwords <- read.csv("../../ESTC_SNA_data_creation/data/raw/latin.stopwords.clean", stringsAsFactors = FALSE)
+extra_stopwords <- c("shall", "may", "one", "us", "hath", "yet", "upon", "yet", "now", "said", "unto", "thy", "doe", "first", "must",
+                     "much", "made", "many", "make", "also", "without", "can", "thou", "like", "can", "though", "therefore", "without",
+                     "two", "things", "might", "way", "say", "day", "let", "well", "things", "take", "owne", "doth", "i.e", "tis", "page removed",
+                     #THIS IS IMPORTANT!
+                     "non-latin", "alphabet", "saith", "thus", "|", "¦", "⁻", "vol", "year", "printed", "published",
+                     "na", "amp", "ye", "anno", "translated", "vpon", "vnto", "yeere", "haue", "three", "second", "thereof", "yeare", "written", "mr",
+                     "wherein", "written", "esq", "author", "part", "dr", "volumes", "1800", "volume", "mrs", "m.d", "d.d", "b.d")
+
+
+#Get keyness per era, export png of each community
+
+total_dfm <- readRDS("../../ESTC_SNA_data_creation/data/work/netowrking_archives/total_era_dfm.rds")
+total_dfm <- dfm_select(total_dfm, pattern = c(stopwords("english"), stopwords("french"), stopwords("italian"), stopwords("spanish"), latin_stopwords$a, extra_stopwords), selection = "remove", valuetype = "fixed")
+total_dfm <- dfm_select(total_dfm, pattern = c("\\d\\d\\d\\d\\d", "\\d\\d\\d\\d", "\\d\\d\\d", "\\d\\d", "\\d"), selection = "remove", valuetype = "regex")
+
+eras <- unique(total_dfm@docvars$Era)
+```
+
+#Print plots
+
+```{r}
+for(i_era in 1:length(eras)) {
+  cat("\n", eras[i_era], "\n")
+  tstat_key <- textstat_keyness(total_dfm, 
+                                target = total_dfm@docvars$Era == paste0(eras[i_era]))
+  print(textplot_keyness(tstat_key, n = 20))
+}
+```
+
