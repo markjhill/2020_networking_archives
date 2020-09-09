@@ -18,10 +18,16 @@ library(tibble)
 library(PGRdup)
 
 
-era <- "1751-1760"
+con <- neo4j_api$new(
+  url = "http://localhost:7474",
+  user = "neo4j", 
+  password = "1234"
+)
+
+era <- "1761-1770"
 
 
-latin_stopwords <- read.csv("../ESTC_SNA_data_creation/data/raw/latin.stopwords.clean", stringsAsFactors = FALSE)
+latin_stopwords <- read.csv("../../ESTC_SNA_data_creation/data/raw/latin.stopwords.clean", stringsAsFactors = FALSE)
 extra_stopwords <- c("shall", "may", "one", "us", "hath", "yet", "upon", "yet", "now", "said", "unto", "thy", "doe", "first", "must",
                      "much", "made", "many", "make", "also", "without", "can", "thou", "like", "can", "though", "therefore", "without",
                      "two", "things", "might", "way", "say", "day", "let", "well", "things", "take", "owne", "doth", "i.e", "tis", "page removed",
@@ -31,26 +37,26 @@ extra_stopwords <- c("shall", "may", "one", "us", "hath", "yet", "upon", "yet", 
                      "wherein", "written", "esq", "author", "part", "dr", "volumes", "1800", "volume", "mrs", "m.d", "d.d", "b.d")
 
 
-temp_dfm <- readRDS(paste0("../ESTC_SNA_data_creation/data/work/netowrking_archives/com_dfm_titles/com_dfm_", era, ".rds"))
+temp_dfm <- readRDS(paste0("../../ESTC_SNA_data_creation/data/work/netowrking_archives/com_dfm_titles/com_dfm_", era, ".rds"))
 temp_dfm <- dfm_select(temp_dfm, pattern = c(stopwords("english"), stopwords("french"), stopwords("italian"), stopwords("spanish"), latin_stopwords$a, extra_stopwords), selection = "remove", valuetype = "fixed")
 temp_dfm <- dfm_select(temp_dfm, pattern = c("\\d\\d\\d\\d\\d", "\\d\\d\\d\\d", "\\d\\d\\d", "\\d\\d", "\\d"), selection = "remove", valuetype = "regex")
 
-temp_dir <- paste0("../ESTC_SNA_data_creation/data/work/netowrking_archives/community_data/", era, "/")
+temp_dir <- paste0("../../ESTC_SNA_data_creation/data/work/netowrking_archives/community_data/", era, "/")
 temp_files <- list.files(temp_dir, full.names = TRUE)
 actors <- readRDS(paste0(temp_dir, "actors.rds"))
 temp_files <- temp_files[-(grep("actor", temp_files))]
 
-for(i_com in 1:length(temp_files)) {
-  temp_com <- readRDS(temp_files[i_com])
-  current_com <- gsub(paste0("../ESTC_SNA_data_creation/data/work/netowrking_archives/community_data/", era, "//"), "", temp_files[i_com])
-  current_com <- gsub(".rds", "", current_com)
-  #check which com it may be
-  for(i_com_check in 1:length(unique(temp_dfm@docvars$Community)))
-  if(all(temp_dfm@docvars$estc_id[which(temp_dfm@docvars$Community == paste0("Community_", i_com_check))] %in% temp_com$estc_ids)) {
-    #assign(paste0("com_", era, "_", i_com_check), temp_com)
-    cat("\nExtracted data com", current_com, "is", i_com_check, "in DFM")
-  }
-}
+# for(i_com in 1:length(temp_files)) {
+#   temp_com <- readRDS(temp_files[i_com])
+#   current_com <- gsub(paste0("../ESTC_SNA_data_creation/data/work/netowrking_archives/community_data/", era, "//"), "", temp_files[i_com])
+#   current_com <- gsub(".rds", "", current_com)
+#   #check which com it may be
+#   for(i_com_check in 1:length(unique(temp_dfm@docvars$Community)))
+#   if(all(temp_dfm@docvars$estc_id[which(temp_dfm@docvars$Community == paste0("Community_", i_com_check))] %in% temp_com$estc_ids)) {
+#     #assign(paste0("com_", era, "_", i_com_check), temp_com)
+#     cat("\nExtracted data com", current_com, "is", i_com_check, "in DFM")
+#   }
+# }
 
 
 temp_actors <- paste0(actors$actor_id[which(actors$community == "2")], collapse = '", "')
@@ -64,6 +70,16 @@ cat(paste0('MATCH (a1:Actor)-[]-(d:Document)-[]-(a2:Actor)
 WHERE a1.actor_id IN ["', temp_actors, '"] AND a2.actor_id IN ["', temp_actors, '"] AND d.pub_city CONTAINS "London" AND d.pub_year IN range(', start_year, ',', end_year, ')
 RETURN a1, a2, d'))
 
+temp_estc_id <- paste0(temp_dfm@docvars$estc_id[which(temp_dfm@docvars$Community == com_num[i_authors])], collapse = '", "')
+#getting subjects
+temp_subjects <- paste0('MATCH (d:Document)
+WHERE d.estc_id IN ["', temp_estc_id, '"] 
+RETURN d.subjects_600, d.simplified_dd_subject') %>%
+  call_neo4j(con)
+
+table(temp_subjects$d.simplified_dd_subject[[1]][which(!is.na(temp_subjects$d.simplified_dd_subject[[1]]))])
+
+table(temp_subjects$d.subjects_600[[1]])
 
 #get must actibe
 
@@ -92,3 +108,4 @@ gg <- get_igraph_from_neo4j(g) %>%
 plot.igraph(gg, vertex.size = .5, vertex.label = NA, label.cex = 0)
 
 textstat_simil(temp_dfm, "monarch")
+
