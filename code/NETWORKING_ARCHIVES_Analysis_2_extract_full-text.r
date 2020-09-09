@@ -41,10 +41,15 @@ extra_stopwords <- c("shall", "may", "one", "us", "hath", "yet", "upon", "yet", 
 #era
 
 era <- "1646-1655"
+era <- "1651-1660"
+era <- "1776-1785"
+era <- "1761-1770"
+era <- "1796-1805"
 
 #community
 
-comms <- c(2,9,1,10,12)
+comms <- c(1,2,9)
+comms <- c(20)
 
 #Load and create DFMs
 
@@ -60,6 +65,10 @@ for(i in 1:length(temp_files)) {
   
   temp_file_name <- paste0("../../ESTC_SNA_data_creation/data/work/netowrking_archives/full_text_comms/dfm_", era, "_", comms[i], ".rds")
   
+
+  temp_comm <- readRDS(temp_files[i])
+  assign(paste0("comm_", era, "_", comms[i]), temp_comm)
+  
   if(file.exists(temp_file_name)) {
     temp_dfm <- readRDS(temp_file_name)
     assign(paste0("dfm_", era, "_", comms[i]), temp_dfm)
@@ -67,9 +76,6 @@ for(i in 1:length(temp_files)) {
     next
   }
   
-  
-  temp_comm <- readRDS(temp_files[i])
-  assign(paste0("comm_", comms[i]), temp_comm)
   temp_estcs <- temp_comm$estc_ids
   temp_estcs_filepath <- paste0("../../eebo_ecco_full_text/", temp_estcs, ".txt")
   temp_estcs <- temp_estcs[which(file.exists(temp_estcs_filepath) == TRUE)]
@@ -140,21 +146,43 @@ for(i in 1:length(temp_files)) {
 
 #Analyse DFMs
 
-topfeatures(`dfm_1646-1655_1`)
-topfeatures(`dfm_1646-1655_10`)
-topfeatures(`dfm_1646-1655_12`)
-topfeatures(`dfm_1646-1655_2`)
-topfeatures(`dfm_1646-1655_9`)
+topfeatures(`dfm_1646-1655_1`, n =25)
+topfeatures(`dfm_1646-1655_10`, n =25)
+topfeatures(`dfm_1646-1655_12`, n =25)
+topfeatures(`dfm_1646-1655_2`, n =25)
+topfeatures(`dfm_1646-1655_9`, n =25)
+
+topfeatures(`dfm_1646-1655_1`, n =25)
+topfeatures(`dfm_1646-1655_10`, n =25)
+topfeatures(`dfm_1646-1655_12`, n =25)
+topfeatures(`dfm_1646-1655_2`, n =25)
+topfeatures(`dfm_1646-1655_9`, n =25)
+
 
 #check simil
 
-keywords <- c("quaker")
+keywords <- c("quakers")
+era <- "1651-1660"
 
-for(i in 1:length(temp_files)) {
-  temp_dfm <- get(paste0("dfm_", era, "_", i))
+#community
+
+#comms <- c(2,9,1,10,12)
+comms <- c(1,10,12,5)
+
+keywords <- c("wealth")
+
+#for(i in 1:length(temp_files)) {
+for(i in c(1,4)) {
+  temp_dfm <- get(paste0("dfm_", era, "_", comms[i]))
+  temp_dfm[, c(keywords)]
   tstat_temp <- textstat_simil(temp_dfm,  temp_dfm[, c(keywords)], method = "cosine", margin = "features")
-  head(as.matrix(tstat_temp), 10)
+  print(paste0("dfm_", era, "_", comms[i]))
+  print(as.list(tstat_temp, n = 20))
   rm(temp_dfm)
   rm(tstat_temp)
 }
 
+
+
+
+write.csv(`comm_1646-1655_9`, file = "../outputs_for_presentation/1646-1655_9.csv")
