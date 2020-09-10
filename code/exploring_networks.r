@@ -23,7 +23,74 @@ con <- neo4j_api$new(
   password = "1234"
 )
 
-era <- "1761-1770"
+
+get_igraph_from_neo4j <- function(G) {
+  
+  #remove mutil-birth/death years and collapse arrays
+  nodes <- length(G$nodes$properties)
+  for (i_node in 1:nodes) {
+    G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "year_birth")] <- 
+      unlist(G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "year_birth")])[[1]]
+    G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "year_death")] <-
+      unlist(G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "year_death")])[[1]]
+    
+    G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "tagged_corp")] <- 
+      unlist(G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "tagged_corp")])[[1]]
+    
+    G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "year_active_last_estc")] <- 
+      unlist(G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "year_active_last_estc")])[[1]]
+    G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "year_active_first_estc")] <- 
+      unlist(G$nodes$properties[[i_node]][which(names(G$nodes$properties[[i_node]]) == "year_active_first_estc")])[[1]]
+    
+    to_collapse <- which(lapply(G$nodes$properties[[i_node]], length) > 1)
+    if(length(to_collapse) == 0) { next }
+    G$nodes$properties[[i_node]][to_collapse] <- lapply(G$nodes$properties[[i_node]][to_collapse], paste0, collapse = ", ")
+  }
+  
+  # #collapse arrays
+  # nodes <- length(G$nodes$properties)
+  # for (i_node in 1:nodes) {
+  #   to_collapse <- which(lapply(G$nodes$properties[[i_node]], length) > 1)
+  #   if(length(to_collapse) == 0) { next }
+  #   G$nodes$properties[[i_node]][to_collapse] <- lapply(G$nodes$properties[[i_node]][to_collapse], paste0, collapse = ", ")
+  # }
+  
+  G$nodes <- G$nodes %>%
+    unnest_nodes(what = "properties") %>% 
+    # We're extracting the first label of each node, but 
+    # this column can also be removed if not needed
+    mutate(label = map_chr(label, 1))
+  #G$nodes$label <- ifelse(is.na(G$nodes$name), str_trunc(G$nodes$title, 20, "right"), str_trunc(G$nodes$name, 20, "right"))
+  
+  G$relationships <- G$relationships %>%
+    unnest_relationships() %>%
+    dplyr::select(startNode, endNode, type, everything())
+  
+  graph_object <- igraph::graph_from_data_frame(
+    d = G$relationships, 
+    directed = TRUE, 
+    vertices = G$nodes
+  )
+  
+  #Lables and colours
+  
+  V(graph_object)$color[which(V(graph_object)$label == "Actor")] <- "yellow"
+  V(graph_object)$type[which(V(graph_object)$label == "Actor")] <- "Actor"
+  V(graph_object)$label[which(V(graph_object)$label == "Actor")] <- names(V(graph_object)[which(V(graph_object)$label == "Actor")])
+  
+  V(graph_object)$color[which(V(graph_object)$label == "Document")] <- "green"
+  V(graph_object)$type[which(V(graph_object)$label == "Document")] <- "Document"
+  V(graph_object)$label[which(V(graph_object)$label == "Document")] <- stringr::str_trunc(V(graph_object)$estc_id[which(V(graph_object)$label == "Document")], 20)
+  
+  V(graph_object)$color[which(V(graph_object)$label == "Work")] <- "orange"
+  V(graph_object)$type[which(V(graph_object)$label == "Work")] <- "Work"
+  V(graph_object)$label[which(V(graph_object)$label == "Work")] <- stringr::str_trunc(V(graph_object)$work_id[which(V(graph_object)$label == "Work")], 20)
+  
+  return(graph_object)
+}
+
+
+era <- "1641-1650"
 
 
 latin_stopwords <- read.csv("../../ESTC_SNA_data_creation/data/raw/latin.stopwords.clean", stringsAsFactors = FALSE)
@@ -58,8 +125,8 @@ temp_files <- temp_files[-(grep("actor", temp_files))]
 # }
 
 
-temp_actors <- paste0(actors$actor_id[which(actors$community == "2")], collapse = '", "')
-temp_estc <- com_1641-`com_1641-1650_2`
+temp_actors <- paste0(actors$actor_id[which(actors$community == "5")], collapse = '", "')
+#temp_estc <- com_1641-`com_1641-1650_2`
 start_year <- str_extract(era, "^\\d\\d\\d\\d")
 end_year <- str_extract(era, "\\d\\d\\d\\d$")
 
@@ -104,7 +171,7 @@ RETURN a1, a2, d, rel1, rel2') %>%
 gg <- get_igraph_from_neo4j(g) %>%
   as.undirected(mode = "each")
 
-plot.igraph(gg, vertex.size = .5, vertex.label = NA, label.cex = 0)
+plot.igraph(gg, vertex.size = 1, vertex.label = NA, label.cex = 0)
 
 textstat_simil(temp_dfm, "monarch")
 

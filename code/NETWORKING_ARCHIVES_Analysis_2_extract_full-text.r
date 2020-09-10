@@ -49,6 +49,7 @@ era <- "1796-1805"
 #community
 
 comms <- c(1,2,9)
+comms <- c(1,10,12,5)
 comms <- c(20)
 
 #Load and create DFMs
@@ -169,8 +170,8 @@ era <- "1651-1660"
 #comms <- c(2,9,1,10,12)
 comms <- c(1,10,12,5)
 
-keywords <- c("wealth")
-
+keywords <- c("money")
+  
 #for(i in 1:length(temp_files)) {
 for(i in c(1,4)) {
   temp_dfm <- get(paste0("dfm_", era, "_", comms[i]))
@@ -185,4 +186,4 @@ for(i in c(1,4)) {
 
 
 
-write.csv(`comm_1646-1655_9`, file = "../outputs_for_presentation/1646-1655_9.csv")
+write.csv(`comm_1651-1660_5`, file = "../outputs_for_presentation/1651-1660_5.csv")
