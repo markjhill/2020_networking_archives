@@ -1,9 +1,7 @@
 # 2020_networking_archives
-Analysis, outputs, and code for Sept 2020 Netowrking Archives workshop
+Analysis, outputs, and code for Sept 2020 Netowrking Archives workshop (https://networkingarchives.org/).
 
 ### Please note that some data for this project is private due to copyright restrictions.
-
-For those interested in outputs used in the Netowrking Archives presentation (https://networkingarchives.org/):
 
 ## Community-by-era top features and keyness 
 
